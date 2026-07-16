@@ -17,6 +17,7 @@ const initialContents: Record<string, string> = {
     "6": "# 生命周期\n\n生命周期标注语法：\n\nfn longest(x: &str, y: &str) -> &str {\n    if x.len() > y.len() { x } else { y }\n}",
     "7": "# TypeScript 泛型\n\nfunction identity<T>(arg: T): T {\n    return arg;\n}\n\n## 约束\n\ninterface Lengthwise {\n    length: number;\n}\n\nfunction loggingIdentity<T extends Lengthwise>(arg: T): T {\n    console.log(arg.length);\n    return arg;\n}",
     "8": "# React 19 新特性\n\n- Actions\n- use() hook\n- Server Components\n- Document Metadata\n- 改进的 Hooks",
+    "9": "README.md"
 };
 
 const initialTree: FSNode = {
@@ -50,7 +51,7 @@ const initialTree: FSNode = {
                 { name: "React 19 新特性.md", chunk: "8" },
             ],
         },
-        { name: "README.md" },
+        { name: "README.md", chunk: "9" },
     ],
 };
 
@@ -58,7 +59,6 @@ const initialTree: FSNode = {
 
 export default function KnowledgePage() {
     const [fileContents, setFileContents] = useState<Record<string, string>>(initialContents);
-    const [currentPath, setCurrentPath] = useState<string[]>([]);
     const { "*": splat } = useParams();
     const navigate = useNavigate();
 
@@ -73,10 +73,9 @@ export default function KnowledgePage() {
     const [editContent, setEditContent] = useState("");
     const [isDirty, setIsDirty] = useState(false);
 
-    // Track current path from FileExplorer + sync to URL
+    // Sync FileExplorer path to URL
     const handleNavigate = useCallback(
         (pathStack: string[]) => {
-            setCurrentPath(pathStack);
             const suffix = pathStack.length > 0 ? "/" + pathStack.join("/") : "";
             navigate("/knowledge" + suffix, { replace: true });
         },
