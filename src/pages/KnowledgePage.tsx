@@ -3,6 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { File, X, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import FileExplorer, { type FSNode } from "@/components/common/FileExplorer";
 
 // ==================== Mock Data ====================
@@ -72,6 +80,7 @@ export default function KnowledgePage() {
     const [selectedFile, setSelectedFile] = useState<{ name: string; chunkId: string } | null>(null);
     const [editContent, setEditContent] = useState("");
     const [isDirty, setIsDirty] = useState(false);
+    const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
     // Sync FileExplorer path to URL
     const handleNavigate = useCallback(
@@ -96,13 +105,21 @@ export default function KnowledgePage() {
     // Close editor
     const closeEditor = useCallback(() => {
         if (isDirty) {
-            const confirmed = window.confirm("有未保存的更改，确定关闭吗？");
-            if (!confirmed) return;
+            setShowCloseConfirm(true);
+            return;
         }
         setSelectedFile(null);
         setEditContent("");
         setIsDirty(false);
     }, [isDirty]);
+
+    // Confirm close (discard changes)
+    const confirmClose = useCallback(() => {
+        setSelectedFile(null);
+        setEditContent("");
+        setIsDirty(false);
+        setShowCloseConfirm(false);
+    }, []);
 
     // Save file (by chunkId)
     const saveFile = useCallback(() => {
@@ -133,6 +150,26 @@ export default function KnowledgePage() {
                 onFileOpen={handleFileOpen}
                 onNavigate={handleNavigate}
             />
+
+            {/* ===== Close Confirmation Dialog ===== */}
+            <Dialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+                <DialogContent showCloseButton={false}>
+                    <DialogHeader>
+                        <DialogTitle>未保存的更改</DialogTitle>
+                        <DialogDescription>
+                            有未保存的更改，确定关闭吗？
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowCloseConfirm(false)}>
+                            取消
+                        </Button>
+                        <Button variant="default" onClick={confirmClose}>
+                            确定关闭
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* ===== File Editor Panel (overlay) ===== */}
             {selectedFile && (
@@ -179,6 +216,7 @@ export default function KnowledgePage() {
                     </div>
                 </div>
             )}
+
         </div>
     );
 }

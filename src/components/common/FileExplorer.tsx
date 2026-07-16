@@ -5,7 +5,7 @@ import {
     File,
     Plus,
     Home,
-    Pencil,
+    TextCursor,
     Trash2,
     FolderPlus,
     FilePlus,
@@ -114,6 +114,10 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
     // delete confirm
     const [deleteTarget, setDeleteTarget] = useState<FSNode | null>(null);
 
+    // rename
+    const [renameTarget, setRenameTarget] = useState<FSNode | null>(null);
+    const [renameName, setRenameName] = useState("");
+
     // Sync initialPath from parent (e.g. URL change)
     useEffect(() => {
         if (initialPath) {
@@ -199,6 +203,34 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
         setCreateType(null);
         setNewName("");
     }, [newName, createType, pathStack]);
+
+    const renameItem = useCallback(() => {
+        if (!renameTarget || !renameName.trim()) return;
+        const oldName = renameTarget.name;
+        setRootNode((prev) => {
+            const cloned = cloneNode(prev);
+            const rename = (items: FSNode[]): boolean => {
+                for (const child of items) {
+                    if (child.name === oldName) {
+                        child.name = renameName.trim();
+                        if (child.children === undefined && !renameName.trim().endsWith(".md")) {
+                            child.name = renameName.trim() + ".md";
+                        }
+                        return true;
+                    }
+                    if (child.children && rename(child.children)) return true;
+                }
+                return false;
+            };
+            if (cloned.children) rename(cloned.children);
+            return cloned;
+        });
+        if (selectedNode && selectedNode.name === oldName) {
+            setSelectedNode(null);
+        }
+        setRenameTarget(null);
+        setRenameName("");
+    }, [renameTarget, renameName, selectedNode]);
 
     const deleteItem = useCallback(
         (node: FSNode) => {
@@ -365,16 +397,17 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
                                     </TableCell>
                                     <TableCell className="w-24">
                                         <div className="flex items-center gap-1">
-                                            {!isFolder(item) && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon-xs"
-                                                    onClick={() => handleItemClick(item)}
-                                                    title="编辑"
-                                                >
-                                                    <Pencil className="size-3" />
-                                                </Button>
-                                            )}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-xs"
+                                                onClick={() => {
+                                                    setRenameTarget(item);
+                                                    setRenameName(item.name.replace(/\.md$/, ""));
+                                                }}
+                                                title="重命名"
+                                            >
+                                                <TextCursor className="size-3" />
+                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon-xs"
@@ -469,6 +502,61 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
                         </Button>
                         <Button size="sm" onClick={createItem} disabled={!newName.trim()}>
                             创建
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* ===== Rename Dialog ===== */}
+            <Dialog
+                open={renameTarget !== null}
+                onOpenChange={(o) => {
+                    if (!o) {
+                        setRenameTarget(null);
+                        setRenameName("");
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>重命名</DialogTitle>
+                        <DialogDescription>
+                            重命名{" "}
+                            <span className="font-medium text-foreground">
+                                {renameTarget?.name}
+                            </span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Input
+                        autoFocus
+                        placeholder={
+                            renameTarget && isFolder(renameTarget)
+                                ? "文件夹名称"
+                                : "文件名称（不含扩展名）"
+                        }
+                        value={renameName}
+                        onChange={(e) => setRenameName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") renameItem();
+                            if (e.key === "Escape") {
+                                setRenameTarget(null);
+                                setRenameName("");
+                            }
+                        }}
+                    />
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                                setRenameTarget(null);
+                                setRenameName("");
+                            }}
+                        >
+                            取消
+                        </Button>
+                        <Button size="sm" onClick={renameItem} disabled={!renameName.trim()}>
+                            确定
                         </Button>
                     </DialogFooter>
                 </DialogContent>
