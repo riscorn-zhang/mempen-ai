@@ -1,10 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '@/layouts/MainLayout';
 import HomePage from '@/pages/HomePage';
-import KnowledgePage from '@/pages/KnowledgePage';
 import PlanPage from '@/pages/PlanPage';
 import ChatPage from '@/pages/ChatPage';
-import SettingsPage from '@/pages/SettingsPage';
+import OCRPage from '@/pages/OCRPage';
+import { knowledgeRoute } from '@/pages/knowledge.route';
+import { settingsRoute } from '@/pages/settings.route';
 
 export const router = createBrowserRouter([
     {
@@ -12,10 +13,11 @@ export const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
             { index: true, element: <HomePage /> },
-            { path: 'knowledge/*', element: <KnowledgePage /> },
+            knowledgeRoute,
             { path: 'plan', element: <PlanPage /> },
             { path: 'chat', element: <ChatPage /> },
-            { path: 'settings', element: <SettingsPage /> },
+            settingsRoute,
+            { path: 'ocr', element: <OCRPage /> }
         ],
     },
 ]);

@@ -9,7 +9,9 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { BookOpen, Calendar, MessageCircle, Settings, PencilSparkles, Home } from 'lucide-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+
+import useNavStore from '@/stores/nav';
 
 const navItems = [
     { title: '首页', icon: Home, path: '/' },
@@ -20,31 +22,32 @@ const navItems = [
 ];
 
 export function AppSidebar() {
-    const navigate = useNavigate();
     const location = useLocation();
 
+    const { goto } = useNavStore();
+
     return (
-        <Sidebar collapsible="icon">
-            <SidebarHeader className="h-14 flex justify-center">
+        <Sidebar variant="sidebar" collapsible="none" className="w-14 border-r">
+            <SidebarHeader className="h-14 flex items-center justify-center">
                 <SidebarMenuItem>
-                    <SidebarMenuButton>
-                        <PencilSparkles className="w-4 h-4" />
-                        <span>MemPen AI</span>
+                    <SidebarMenuButton className="justify-center">
+                        <PencilSparkles className="w-5 h-5" />
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="flex flex-col items-center gap-1">
                             {navItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton
                                         isActive={location.pathname === item.path}
-                                        onClick={() => navigate(item.path)}
+                                        onClick={() => { goto(item.path); }}
+                                        className="justify-center"
+                                        title={item.title}
                                     >
-                                        <item.icon className="w-4 h-4" />
-                                        <span>{item.title}</span>
+                                        <item.icon className="w-5 h-5" />
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}

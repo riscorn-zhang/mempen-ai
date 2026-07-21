@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-const useModelAPIStore = create((set) => ({
+
+const useModelAPIStore = create(() => ({
     apiKey: import.meta.env.VITE_API_KEY,
     model: import.meta.env.VITE_API_MODEL,
     apiBaseUrl: import.meta.env.VITE_API_BASE_URL,

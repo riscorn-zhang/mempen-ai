@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import type { ReactNode } from "react";
+import useNavStore from "@/stores/nav";
 import {
     Folder,
     File,
@@ -12,6 +13,8 @@ import {
     ArrowUpDown,
     ArrowUp,
     ArrowDown,
+    Signature,
+    Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,6 +120,8 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
     // rename
     const [renameTarget, setRenameTarget] = useState<FSNode | null>(null);
     const [renameName, setRenameName] = useState("");
+
+    const { forward } = useNavStore();
 
     // Sync initialPath from parent (e.g. URL change)
     useEffect(() => {
@@ -439,12 +444,11 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
                 <DropdownMenuContent align="end" side="top" sideOffset={8}>
                     <DropdownMenuItem
                         onClick={() => {
-                            setCreateType("folder");
-                            setNewName("");
+                            forward("/ocr");
                         }}
                     >
-                        <FolderPlus className="size-4 text-amber-500" />
-                        新建文件夹
+                        <Signature className="size-4 text-green-500" />
+                        手写笔记转文档
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
@@ -454,6 +458,21 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
                     >
                         <FilePlus className="size-4 text-blue-500" />
                         新建文件
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => {
+                            setCreateType("folder");
+                            setNewName("");
+                        }}
+                    >
+                        <FolderPlus className="size-4 text-amber-500" />
+                        新建文件夹
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => { }}
+                    >
+                        <Tag className="size-4 text-purple-500" />
+                        新建标签
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

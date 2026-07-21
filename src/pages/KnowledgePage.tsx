@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { File, X, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,14 +67,15 @@ const initialTree: FSNode = {
 
 export default function KnowledgePage() {
     const [fileContents, setFileContents] = useState<Record<string, string>>(initialContents);
-    const { "*": splat } = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
-    // Read initial path from URL splat
+    // Read initial path from URL query param
     const initialExplorerPath = useMemo(() => {
-        if (!splat) return [];
-        return splat.split("/").filter(Boolean);
-    }, [splat]);
+        const pathParam = searchParams.get("path");
+        if (!pathParam) return [];
+        return pathParam.split("/").filter(Boolean);
+    }, [searchParams]);
 
     // Editor state
     const [selectedFile, setSelectedFile] = useState<{ name: string; chunkId: string } | null>(null);
@@ -85,11 +86,12 @@ export default function KnowledgePage() {
     // Sync FileExplorer path to URL
     const handleNavigate = useCallback(
         (pathStack: string[]) => {
-            const suffix = pathStack.length > 0 ? "/" + pathStack.join("/") : "";
-            navigate("/knowledge" + suffix, { replace: true });
+            const query = pathStack.length > 0 ? "?path=" + encodeURIComponent(pathStack.join("/")) : "";
+            navigate("/knowledge" + query, { replace: true });
         },
         [navigate]
     );
+
 
     // Open file (by chunkId)
     const handleFileOpen = useCallback(
@@ -141,6 +143,7 @@ export default function KnowledgePage() {
         },
         [saveFile]
     );
+
 
     return (
         <div className="flex h-full flex-col">
