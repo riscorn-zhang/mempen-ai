@@ -45,7 +45,7 @@ export default function MainLayout() {
                 </header>
 
                 {/* 主内容区域 */}
-                <main className="flex flex-1 flex-col overflow-auto p-6">
+                <main className="flex flex-1 flex-col overflow-auto">
                     <Outlet />
                 </main>
             </SidebarInset>

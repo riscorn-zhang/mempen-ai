@@ -1,10 +1,16 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
-    Bot, Info, Settings, Monitor, Database,
+    Bot, Info, Settings, Monitor, Database, Menu, Search,
     type LucideIcon,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import useNavStore from '@/stores/nav';
+import { useState } from 'react';
+
+import {
+    Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 
 import ModelService from './settings/ModelService';
 import GeneralSettings from './settings/GeneralSettings';
@@ -42,62 +48,89 @@ function SettingsMenu() {
     const { replace } = useNavStore();
 
     return (
-        <div className="w-52 shrink-0 border-r pr-2 py-4 space-y-1">
+        <div className="w-44 shrink-0 border-r px-2 py-4 space-y-1">
             <h2 className="px-3 mb-3 text-lg font-bold">设置</h2>
             {sections.map(({ id, label, icon: Icon, path }) => {
                 const isActive = location.pathname.endsWith(`/${path}`);
                 return (
-                    <button
+                    <Button
                         key={id}
+                        variant={isActive ? 'secondary' : 'ghost'}
+                        className="w-full justify-start gap-2.5 h-9 text-sm"
                         onClick={() => replace(`/settings/${path}`)}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${isActive
-                            ? 'bg-muted font-medium'
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                            }`}
                     >
                         <Icon className="size-4" />
                         {label}
-                    </button>
+                    </Button>
                 );
             })}
         </div>
     );
 }
 
+function MobileMenuContent({ onNavigate }: { onNavigate: () => void }) {
+    const location = useLocation();
+    const { replace } = useNavStore();
+
+    return (
+        <>
+            <SheetHeader>
+                <SheetTitle>设置</SheetTitle>
+            </SheetHeader>
+            <div className="py-4 space-y-1">
+                {sections.map(({ id, label, icon: Icon, path }) => {
+                    const isActive = location.pathname.endsWith(`/${path}`);
+                    return (
+                        <Button
+                            key={id}
+                            variant={isActive ? 'secondary' : 'ghost'}
+                            className="w-full justify-start gap-2.5 h-10 text-sm"
+                            onClick={() => {
+                                replace(`/settings/${path}`);
+                                onNavigate();
+                            }}
+                        >
+                            <Icon className="size-4" />
+                            {label}
+                        </Button>
+                    );
+                })}
+            </div>
+        </>
+    );
+}
+
 export default function SettingsPage() {
     const isMobile = useIsMobile();
-    const location = useLocation();
-    const { forward } = useNavStore();
+    const [open, setOpen] = useState(false);
 
-    // 检查是否在子路由上（如 /settings/model）
-    const isSubRoute = location.pathname !== '/settings';
+    if (isMobile === undefined) return null;
 
     if (isMobile) {
-        if (isSubRoute) {
-            return <Outlet />;
-        }
-
         return (
-            <div className="py-4 space-y-1">
-                <h2 className="px-3 mb-3 text-lg font-bold">设置</h2>
-                {sections.map(({ id, label, icon: Icon, path }) => (
-                    <button
-                        key={id}
-                        onClick={() => forward(`/settings/${path}`)}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-                    >
-                        <Icon className="size-4" />
-                        {label}
-                    </button>
-                ))}
+            <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-3">
+                        <Sheet open={open} onOpenChange={setOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Menu className="size-5" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-64">
+                                <MobileMenuContent onNavigate={() => setOpen(false)} />
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                        <Search className="size-5" />
+                    </Button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6">
+                    <Outlet />
+                </div>
             </div>
         );
-    }
-
-    // 桌面端：/settings 自动跳转到第一个子页面
-    if (!isSubRoute) {
-        forward(`/settings/${sections[0].path}`);
-        return null;
     }
 
     return (
@@ -113,8 +146,11 @@ export default function SettingsPage() {
 export const settingsRoute = {
     path: 'settings',
     element: <SettingsPage />,
-    children: sections.map(({ id, path }) => ({
-        path,
-        element: settingsPanels[id],
-    })),
+    children: [
+        { index: true, element: <Navigate to="model" replace /> },
+        ...sections.map(({ id, path }) => ({
+            path,
+            element: settingsPanels[id],
+        })),
+    ],
 };

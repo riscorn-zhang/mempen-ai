@@ -146,7 +146,7 @@ export default function KnowledgePage() {
 
 
     return (
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col p-6">
             <FileExplorer
                 tree={initialTree}
                 initialPath={initialExplorerPath}
