@@ -4,6 +4,7 @@ mod file_io;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_store::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             file_io::load_data,
             file_io::save_data

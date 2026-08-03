@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { Store } from '@tauri-apps/plugin-store';
 
+/** 打开 `{name}.json` 持久化文件 */
+export function openStore(name: string) {
+    return Store.load(`${name}.json`, { autoSave: false });
+}
+
 interface SettingsState {
     theme: 'light' | 'dark' | 'system';
     language: string;
@@ -34,7 +39,7 @@ const useSettingsStore = create<SettingsState>((set, get) => ({
 
     load: async () => {
         if (!store) {
-            store = await Store.load('settings.json', { autoSave: false });
+            store = await openStore('settings');
         }
         const theme = await store.get<'light' | 'dark' | 'system'>('theme') ?? 'system';
         const language = await store.get<string>('language') ?? 'zh-CN';

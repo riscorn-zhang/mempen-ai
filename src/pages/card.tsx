@@ -116,8 +116,8 @@ export default function CardPage() {
                                 const hasChildren = f.children.length > 0
                                 const trigger = hasChildren ? (
                                     <CollapsibleTrigger asChild>
-                                        <Button variant="ghost" size="icon-sm">
-                                            <ChevronRight />
+                                        <Button variant="ghost" size="icon-sm" className="[&[data-state=open]>svg]:rotate-90">
+                                            <ChevronRight className="transition-transform" />
                                         </Button>
                                     </CollapsibleTrigger>
                                 ) : <></>

@@ -17,6 +17,8 @@
           "url": "http://**"
         }
       ]
-    }
+    },
+    "store:allow-load",
+    "store:default"
   ]
 }
