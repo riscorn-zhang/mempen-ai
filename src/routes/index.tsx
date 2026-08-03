@@ -1,23 +1,10 @@
-import { createBrowserRouter } from 'react-router-dom';
-import MainLayout from '@/layouts/MainLayout';
-import HomePage from '@/pages/HomePage';
-import PlanPage from '@/pages/PlanPage';
-import ChatPage from '@/pages/ChatPage';
-import OCRPage from '@/pages/OCRPage';
-import CardPage from '@/pages/CardPage';
-import { settingsRoute } from '@/pages/settings.route';
+﻿import { createBrowserRouter } from "react-router-dom";
+import routes from "~react-pages";
+import MainLayout from "@/layouts/MainLayout";
 
 export const router = createBrowserRouter([
     {
-        path: '/',
         element: <MainLayout />,
-        children: [
-            { index: true, element: <HomePage /> },
-            { path: 'card', element: <CardPage /> },
-            { path: 'plan', element: <PlanPage /> },
-            { path: 'chat', element: <ChatPage /> },
-            settingsRoute,
-            { path: 'ocr', element: <OCRPage /> }
-        ],
+        children: routes,
     },
 ]);

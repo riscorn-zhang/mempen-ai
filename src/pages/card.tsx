@@ -162,7 +162,7 @@ export default function CardPage() {
             </ScrollArea>
 
             <main className="min-w-0 flex-1">
-                <header className="flex items-center gap-2 px-4">
+                <header className="flex items-center gap-2 px-4 h-12">
                     <InputGroup className="flex-1">
                         <InputGroupInput placeholder="Search..." />
                         <InputGroupAddon>

@@ -42,7 +42,7 @@ export function AppSidebar() {
                             {navItems.map((item) => (
                                 <SidebarMenuItem key={item.title}>
                                     <SidebarMenuButton
-                                        isActive={location.pathname === item.path}
+                                        isActive={item.path === '/' ? location.pathname === '/' : location.pathname === item.path || location.pathname.startsWith(`${item.path}/`)}
                                         onClick={() => { goto(item.path); }}
                                         className="justify-center"
                                         title={item.title}

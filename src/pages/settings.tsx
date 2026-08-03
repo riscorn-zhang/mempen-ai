@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import {
     Bot, Info, Settings, Monitor, Database,
     type LucideIcon,
@@ -6,22 +6,7 @@ import {
 import useNavStore from '@/stores/nav';
 import { Button } from '@/components/ui/button';
 
-import ModelService from './settings/ModelService';
-import GeneralSettings from './settings/GeneralSettings';
-import DisplaySettings from './settings/DisplaySettings';
-import DataSettings from './settings/DataSettings';
-import About from './settings/About';
-
-type SectionId = 'model' | 'general' | 'display' | 'data' | 'about';
-
-interface SectionItem {
-    id: SectionId;
-    label: string;
-    icon: LucideIcon;
-    path: string;
-}
-
-export const sections: SectionItem[] = [
+const sections: { id: string; label: string; icon: LucideIcon; path: string }[] = [
     { id: 'model', label: '模型服务', icon: Bot, path: 'model' },
     { id: 'general', label: '常规设置', icon: Settings, path: 'general' },
     { id: 'display', label: '显示设置', icon: Monitor, path: 'display' },
@@ -29,16 +14,7 @@ export const sections: SectionItem[] = [
     { id: 'about', label: '关于软件', icon: Info, path: 'about' },
 ];
 
-export const settingsPanels: Record<SectionId, React.ReactNode> = {
-    model: <ModelService />,
-    general: <GeneralSettings />,
-    display: <DisplaySettings />,
-    data: <DataSettings />,
-    about: <About />,
-};
-
 export default function SettingsPage() {
-
     const location = useLocation();
     const { replace } = useNavStore();
 
@@ -67,15 +43,3 @@ export default function SettingsPage() {
         </div>
     );
 }
-
-export const settingsRoute = {
-    path: 'settings',
-    element: <SettingsPage />,
-    children: [
-        { index: true, element: <Navigate to="model" replace /> },
-        ...sections.map(({ id, path }) => ({
-            path,
-            element: settingsPanels[id],
-        })),
-    ],
-};
