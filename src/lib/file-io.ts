@@ -15,3 +15,5 @@ export async function loadData<T = unknown>(filepath: string): Promise<T> {
  * @param data 要写入的 JSON 对象
  */
 export async function saveData<T = unknown>(filepath: string, data: T): Promise<void> {
+    return invoke<void>('save_data', { filepath, data });
+}

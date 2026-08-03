@@ -16,16 +16,22 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    server: proxyTarget
-      ? {
-        proxy: {
-          "/api-proxy": {
-            target: proxyTarget,
-            changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/api-proxy/, proxyPath),
+    server: {
+      watch: {
+        // cargo 会写锁 DLL，Vite 别盯 src-tauri/target
+        ignored: ["**/src-tauri/target/**"],
+      },
+      ...(proxyTarget
+        ? {
+          proxy: {
+            "/api-proxy": {
+              target: proxyTarget,
+              changeOrigin: true,
+              rewrite: (path) => path.replace(/^\/api-proxy/, proxyPath),
+            },
           },
-        },
-      }
-      : undefined,
+        }
+        : {}),
+    },
   }
 })

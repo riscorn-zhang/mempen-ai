@@ -23,3 +23,4 @@ export async function loadModelConfigs(): Promise<ModelConfigs> {
 
 export async function saveModelConfigs(data: ModelConfigs): Promise<void> {
     await saveData(MODEL_CONFIG_PATH, data);
+}

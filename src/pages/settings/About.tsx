@@ -2,7 +2,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function About() {
     return (
-        <div className="max-w-2xl space-y-6">
+        <div className="space-y-6">
             <div>
                 <h3 className="text-xl font-bold">关于 MemPen AI</h3>
             </div>

@@ -27,3 +27,12 @@ tauri-plugin-http = "2"
 tauri-plugin-store = "2"
 tauri-plugin-fs = "2"
 serde_yaml = "0.9.34"
+
+# 少生成调试产物：依赖不带 debug，本 crate 只留行号
+[profile.dev]
+debug = 1
+incremental = true
+
+[profile.dev.package."*"]
+debug = false
+opt-level = 1

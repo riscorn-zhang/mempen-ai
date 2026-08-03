@@ -280,7 +280,7 @@ export default function ModelService() {
             </Dialog>
 
             {/* 下方：配置表单 */}
-            <div className="space-y-4 w-full">
+            <div className="space-y-4">
                 <div className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-sm font-medium">
                         <Globe className="size-3.5" /> API 类型

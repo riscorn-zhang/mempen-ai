@@ -49,7 +49,6 @@ import {
     DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
 // ==================== Types ====================
 
 export interface FSNode {
@@ -64,6 +63,7 @@ export interface FileExplorerProps {
     initialPath?: string[];
     onFileOpen?: (node: FSNode) => void;
     onNavigate?: (pathStack: string[]) => void;
+    moreFABActions?: any;
 }
 
 type SortKey = "name" | "type";
@@ -442,14 +442,14 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side="top" sideOffset={8}>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         onClick={() => {
                             forward("/ocr");
                         }}
                     >
                         <Signature className="size-4 text-green-500" />
                         手写笔记转文档
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem
                         onClick={() => {
                             setCreateType("file");
@@ -468,12 +468,12 @@ export default function FileExplorer({ tree, initialPath, onFileOpen, onNavigate
                         <FolderPlus className="size-4 text-amber-500" />
                         新建文件夹
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                         onClick={() => { }}
                     >
                         <Tag className="size-4 text-purple-500" />
                         新建标签
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                 </DropdownMenuContent>
             </DropdownMenu>
 

@@ -8,14 +8,14 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { BookOpen, Calendar, MessageCircle, Settings, PencilSparkles, Home } from 'lucide-react';
+import { SquareAsterisk, Calendar, MessageCircle, Settings, PencilSparkles, Home } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 import useNavStore from '@/stores/nav';
 
 const navItems = [
     { title: '首页', icon: Home, path: '/' },
-    { title: '知识库', icon: BookOpen, path: '/knowledge' },
+    { title: '卡片管理', icon: SquareAsterisk, path: '/card' },
     { title: '学习计划', icon: Calendar, path: '/plan' },
     { title: '聊天', icon: MessageCircle, path: '/chat' },
     { title: '设置', icon: Settings, path: '/settings' },
