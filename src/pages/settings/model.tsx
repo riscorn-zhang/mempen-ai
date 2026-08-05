@@ -1,6 +1,5 @@
 ﻿import { useEffect, useRef, useCallback, useState } from 'react';
 import { useImmer } from 'use-immer';
-import type { Store } from '@tauri-apps/plugin-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,7 +19,7 @@ import {
 import {
     Key, Globe, Bot, Plus, Trash2, RefreshCw, Copy, Edit, EyeOffIcon
 } from 'lucide-react';
-import { openStore } from '@/stores/settings';
+import { useSetting } from '@/stores/settings';
 
 const API_TYPES = [
     { id: 'openai', label: 'OpenAI 兼容' },
@@ -38,21 +37,34 @@ interface ModelConfig {
     apiModel: string;
 }
 
-
-
-interface ConfigState {
+interface ModelSettings {
     configs: ModelConfig[];
     selectedName: string;
-    loaded: boolean;
 }
 
+const DEFAULT_MODEL_SETTINGS: ModelSettings = {
+    configs: [],
+    selectedName: '',
+};
+
 export default function ModelService() {
-    const storeRef = useRef<Store | null>(null);
-    const [s, update] = useImmer<ConfigState>({
-        configs: [],
-        selectedName: '',
-        loaded: false,
-    });
+    const [settings, setSettings] = useSetting<ModelSettings>('model', DEFAULT_MODEL_SETTINGS);
+    const [s, update] = useImmer<ModelSettings>(settings);
+
+    // 同步外部设置到本地状态
+    useEffect(() => {
+        update(settings);
+    }, [settings, update]);
+
+    // 防抖保存
+    const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+    useEffect(() => {
+        if (s.configs.length === 0 && !s.selectedName) return;
+        clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+            setSettings(s);
+        }, 300);
+    }, [s, setSettings]);
 
     const [renameOpen, setRenameOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');
@@ -64,45 +76,6 @@ export default function ModelService() {
     const [templateName, setTemplateName] = useState('');
     const [templateError, setTemplateError] = useState('');
     const [templateSourceId, setTemplateSourceId] = useState('');
-
-
-    useEffect(() => {
-        let cancelled = false;
-        openStore('model').then(async (store) => {
-            console.log(store)
-            if (cancelled) return;
-            storeRef.current = store;
-            const configs = await store.get<ModelConfig[]>('configs') ?? [];
-            const selectedName = await store.get<string>('selectedName') ?? '';
-            update((d) => {
-                d.configs = configs;
-                d.selectedName = configs.some((c) => c.name === selectedName)
-                    ? selectedName
-                    : (configs[0]?.name ?? '');
-                d.loaded = true;
-            });
-        }).catch(() => {
-            if (!cancelled) update((d) => { d.loaded = true; });
-        });
-        return () => { cancelled = true; };
-    }, [update]);
-
-    const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-    const persist = useCallback((cfgs: ModelConfig[], selName: string) => {
-        clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(async () => {
-            const store = storeRef.current;
-            if (!store) return;
-            await store.set('configs', cfgs);
-            await store.set('selectedName', selName);
-            await store.save();
-        }, 300);
-    }, []);
-
-    useEffect(() => {
-        if (!s.loaded) return;
-        persist(s.configs, s.selectedName);
-    }, [s.configs, s.selectedName, s.loaded, persist]);
 
     const selected = s.configs.find((c) => c.name === s.selectedName);
 

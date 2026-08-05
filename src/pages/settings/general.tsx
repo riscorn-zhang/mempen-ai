@@ -2,7 +2,7 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import useSettingsStore from '@/stores/settings';
+import { useSetting } from '@/stores/settings';
 
 const LANGUAGES = [
     { value: 'zh-CN', label: '简体中文' },
@@ -10,10 +10,8 @@ const LANGUAGES = [
 ] as const;
 
 export default function GeneralSettings() {
-    const language = useSettingsStore((s) => s.language);
-    const autoSave = useSettingsStore((s) => s.autoSave);
-    const setLanguage = useSettingsStore((s) => s.setLanguage);
-    const setAutoSave = useSettingsStore((s) => s.setAutoSave);
+    const [language, setLanguage] = useSetting<string>('language', 'zh-CN');
+    const [autoSave, setAutoSave] = useSetting<boolean>('autoSave', true);
 
     return (
         <div className="max-w-2xl space-y-6">

@@ -1,60 +1,61 @@
-import { create } from 'zustand';
-import { Store } from '@tauri-apps/plugin-store';
+import { useState, useEffect, useCallback } from 'react';
+import { readTextFile, writeTextFile, exists, ensureDir, BaseDirectory } from '@/lib/fs';
 
-/** 打开 `{name}.json` 持久化文件 */
-export function openStore(name: string) {
-    return Store.load(`${name}.json`, { autoSave: false });
-}
+const SETTINGS_DIR = 'settings';
 
-interface SettingsState {
-    theme: 'light' | 'dark' | 'system';
-    language: string;
-    autoSave: boolean;
-    setTheme: (theme: SettingsState['theme']) => void;
-    setLanguage: (lang: string) => void;
-    setAutoSave: (enabled: boolean) => void;
-    load: () => Promise<void>;
-    save: () => Promise<void>;
-}
-
-let store: Store | null = null;
-
-const useSettingsStore = create<SettingsState>((set, get) => ({
-    theme: 'system',
-    language: 'zh-CN',
-    autoSave: true,
-
-    setTheme: (theme) => {
-        set({ theme });
-        get().save();
-    },
-    setLanguage: (language) => {
-        set({ language });
-        get().save();
-    },
-    setAutoSave: (autoSave) => {
-        set({ autoSave });
-        get().save();
-    },
-
-    load: async () => {
-        if (!store) {
-            store = await openStore('settings');
+/** 读取单个设置文件 */
+async function loadSettingFile<T>(name: string): Promise<T | null> {
+    const filepath = `${SETTINGS_DIR}/${name}.json`;
+    try {
+        if (!(await exists(filepath, { baseDir: BaseDirectory.AppData }))) {
+            return null;
         }
-        const theme = await store.get<'light' | 'dark' | 'system'>('theme') ?? 'system';
-        const language = await store.get<string>('language') ?? 'zh-CN';
-        const autoSave = await store.get<boolean>('autoSave') ?? true;
-        set({ theme, language, autoSave });
-    },
+        const content = await readTextFile(filepath, { baseDir: BaseDirectory.AppData });
+        return JSON.parse(content);
+    } catch {
+        return null;
+    }
+}
 
-    save: async () => {
-        if (!store) return;
-        const { theme, language, autoSave } = get();
-        await store.set('theme', theme);
-        await store.set('language', language);
-        await store.set('autoSave', autoSave);
-        await store.save();
-    },
-}));
+/** 保存单个设置文件 */
+async function saveSettingFile<T>(name: string, data: T): Promise<void> {
+    const filepath = `${SETTINGS_DIR}/${name}.json`;
+    await ensureDir(SETTINGS_DIR, BaseDirectory.AppData);
+    await writeTextFile(filepath, JSON.stringify(data, null, 2), {
+        baseDir: BaseDirectory.AppData
+    });
+}
 
-export default useSettingsStore;
+/**
+ * 通用设置 hook - JSON string 和对象的中间层
+ * @param name 配置文件名（对应 settings/{name}.json）
+ * @param defaultValue 默认值
+ * @returns [value, setValue]
+ */
+export function useSetting<T>(name: string, defaultValue: T): [T, (value: T | ((prev: T) => T)) => void] {
+    const [value, setValue] = useState<T>(defaultValue);
+    const [loaded, setLoaded] = useState(false);
+
+    // 初始化加载
+    useEffect(() => {
+        loadSettingFile<T>(name).then(data => {
+            if (data !== null) {
+                setValue(data);
+            }
+            setLoaded(true);
+        });
+    }, [name]);
+
+    const setSetting = useCallback(async (newValue: T | ((prev: T) => T)) => {
+        if (!loaded) return;
+
+        const resolvedValue = typeof newValue === 'function'
+            ? (newValue as (prev: T) => T)(value)
+            : newValue;
+
+        setValue(resolvedValue);
+        await saveSettingFile(name, resolvedValue);
+    }, [name, value, loaded]);
+
+    return [value, setSetting];
+}

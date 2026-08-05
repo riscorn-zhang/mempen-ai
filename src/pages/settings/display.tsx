@@ -2,7 +2,9 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useTheme } from '@/components/theme-provider';
-import useSettingsStore from '@/stores/settings';
+import { useSetting } from '@/stores/settings';
+
+type Theme = 'light' | 'dark' | 'system'
 
 const THEMES = [
     { value: 'system', label: '跟随系统' },
@@ -11,12 +13,11 @@ const THEMES = [
 ] as const;
 
 export default function DisplaySettings() {
-    const theme = useSettingsStore((s) => s.theme);
-    const setThemeSetting = useSettingsStore((s) => s.setTheme);
+    const [theme, setThemeSetting] = useSetting<Theme>('theme', 'system');
     const { setTheme } = useTheme();
 
     const onThemeChange = (value: string) => {
-        const next = value as 'light' | 'dark' | 'system';
+        const next = value as Theme;
         setThemeSetting(next);
         setTheme(next);
     };

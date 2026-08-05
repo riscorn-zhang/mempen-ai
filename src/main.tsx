@@ -5,16 +5,13 @@ import { RouterProvider } from "react-router-dom"
 import "./index.css"
 import { router } from "@/routes"
 import { ThemeProvider, useTheme } from "@/components/theme-provider.tsx"
-import useSettingsStore from "@/stores/settings"
+import { useSetting } from "@/stores/settings"
+
+type Theme = 'light' | 'dark' | 'system'
 
 function SettingsBootstrap({ children }: { children: React.ReactNode }) {
-  const load = useSettingsStore((s) => s.load)
-  const theme = useSettingsStore((s) => s.theme)
+  const [theme] = useSetting<Theme>('theme', 'system')
   const { setTheme } = useTheme()
-
-  useEffect(() => {
-    void load()
-  }, [load])
 
   useEffect(() => {
     setTheme(theme)
