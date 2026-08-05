@@ -34,22 +34,14 @@ interface ModelConfig {
     apiModel: string;
 }
 
-const DEFAULTS: Record<string, { url: string; model: string }> = {
-    openai: { url: 'https://api.openai.com/v1', model: 'gpt-4o' },
-    aliyun: { url: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
-    deepseek: { url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-    ollama: { url: 'http://localhost:11434/v1', model: 'llama3' },
-    custom: { url: '', model: '' },
-};
-
 function createConfig(name: string, patch?: Partial<ModelConfig>): ModelConfig {
     return {
         id: crypto.randomUUID(),
         name,
         apiType: 'openai',
         apiKey: '',
-        apiUrl: DEFAULTS.openai.url,
-        apiModel: DEFAULTS.openai.model,
+        apiUrl: '',
+        apiModel: '',
         ...patch,
     };
 }
@@ -81,6 +73,7 @@ export default function ModelService() {
         templateName: '',
         templateSourceId: '',
     });
+
 
     useEffect(() => {
         let cancelled = false;
@@ -154,10 +147,6 @@ export default function ModelService() {
             const c = d.configs.find((x) => x.id === d.selectedId);
             if (!c) return;
             c[field] = value;
-            if (field === 'apiType' && DEFAULTS[value]) {
-                c.apiUrl = DEFAULTS[value].url;
-                c.apiModel = DEFAULTS[value].model;
-            }
         });
     };
 
@@ -224,8 +213,8 @@ export default function ModelService() {
                 </DropdownMenu>
 
                 {selected && (
-                    <Button variant="ghost" size="sm" className="text-destructive gap-1.5" onClick={() => removeConfig(selected.id)}>
-                        <Trash2 className="size-4" />
+                    <Button variant="destructive" size="sm" className="gap-1.5" onClick={() => removeConfig(selected.id)}>
+                        <Trash2 />
                         删除
                     </Button>
                 )}
