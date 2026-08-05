@@ -1,8 +1,13 @@
-﻿import { useEffect, useRef, useCallback } from 'react';
+﻿import { useEffect, useRef, useCallback, useState } from 'react';
 import { useImmer } from 'use-immer';
 import type { Store } from '@tauri-apps/plugin-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group"
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -13,7 +18,7 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    Key, Globe, Bot, Plus, Trash2, RefreshCw, Copy, Edit,
+    Key, Globe, Bot, Plus, Trash2, RefreshCw, Copy, Edit, EyeOffIcon
 } from 'lucide-react';
 import { openStore } from '@/stores/settings';
 
@@ -26,7 +31,6 @@ const API_TYPES = [
 ] as const;
 
 interface ModelConfig {
-    id: string;
     name: string;
     apiType: string;
     apiKey: string;
@@ -34,59 +38,47 @@ interface ModelConfig {
     apiModel: string;
 }
 
-function createConfig(name: string, patch?: Partial<ModelConfig>): ModelConfig {
-    return {
-        id: crypto.randomUUID(),
-        name,
-        apiType: 'openai',
-        apiKey: '',
-        apiUrl: '',
-        apiModel: '',
-        ...patch,
-    };
-}
 
-interface State {
+
+interface ConfigState {
     configs: ModelConfig[];
-    selectedId: string;
+    selectedName: string;
     loaded: boolean;
-    renameOpen: boolean;
-    renameValue: string;
-    newConfigOpen: boolean;
-    newConfigName: string;
-    templateOpen: boolean;
-    templateName: string;
-    templateSourceId: string;
 }
 
 export default function ModelService() {
     const storeRef = useRef<Store | null>(null);
-    const [s, update] = useImmer<State>({
+    const [s, update] = useImmer<ConfigState>({
         configs: [],
-        selectedId: '',
+        selectedName: '',
         loaded: false,
-        renameOpen: false,
-        renameValue: '',
-        newConfigOpen: false,
-        newConfigName: '',
-        templateOpen: false,
-        templateName: '',
-        templateSourceId: '',
     });
+
+    const [renameOpen, setRenameOpen] = useState(false);
+    const [renameValue, setRenameValue] = useState('');
+    const [renameError, setRenameError] = useState('');
+    const [newConfigOpen, setNewConfigOpen] = useState(false);
+    const [newConfigName, setNewConfigName] = useState('');
+    const [newConfigError, setNewConfigError] = useState('');
+    const [templateOpen, setTemplateOpen] = useState(false);
+    const [templateName, setTemplateName] = useState('');
+    const [templateError, setTemplateError] = useState('');
+    const [templateSourceId, setTemplateSourceId] = useState('');
 
 
     useEffect(() => {
         let cancelled = false;
         openStore('model').then(async (store) => {
+            console.log(store)
             if (cancelled) return;
             storeRef.current = store;
             const configs = await store.get<ModelConfig[]>('configs') ?? [];
-            const selectedId = await store.get<string>('selectedId') ?? '';
+            const selectedName = await store.get<string>('selectedName') ?? '';
             update((d) => {
                 d.configs = configs;
-                d.selectedId = configs.some((c) => c.id === selectedId)
-                    ? selectedId
-                    : (configs[0]?.id ?? '');
+                d.selectedName = configs.some((c) => c.name === selectedName)
+                    ? selectedName
+                    : (configs[0]?.name ?? '');
                 d.loaded = true;
             });
         }).catch(() => {
@@ -96,55 +88,75 @@ export default function ModelService() {
     }, [update]);
 
     const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-    const persist = useCallback((cfgs: ModelConfig[], selId: string) => {
+    const persist = useCallback((cfgs: ModelConfig[], selName: string) => {
         clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(async () => {
             const store = storeRef.current;
             if (!store) return;
             await store.set('configs', cfgs);
-            await store.set('selectedId', selId);
+            await store.set('selectedName', selName);
             await store.save();
         }, 300);
     }, []);
 
     useEffect(() => {
         if (!s.loaded) return;
-        persist(s.configs, s.selectedId);
-    }, [s.configs, s.selectedId, s.loaded, persist]);
+        persist(s.configs, s.selectedName);
+    }, [s.configs, s.selectedName, s.loaded, persist]);
 
-    const selected = s.configs.find((c) => c.id === s.selectedId);
+    const selected = s.configs.find((c) => c.name === s.selectedName);
+
+    function createConfig(name: string, patch?: Partial<ModelConfig>): ModelConfig {
+        return {
+            name,
+            apiType: 'openai',
+            apiKey: '',
+            apiUrl: '',
+            apiModel: '',
+            ...patch,
+        };
+    }
 
     const addConfig = (name: string) => {
+        if (s.configs.some((c) => c.name === name)) {
+            setNewConfigError('配置名称已存在');
+            return;
+        }
         const newCfg = createConfig(name);
         update((d) => {
             d.configs.push(newCfg);
-            d.selectedId = newCfg.id;
-            d.newConfigOpen = false;
+            d.selectedName = newCfg.name;
         });
+        setNewConfigOpen(false);
+        setNewConfigError('');
     };
 
-    const addFromTemplate = (name: string, sourceId: string) => {
-        const source = s.configs.find((c) => c.id === sourceId);
+    const addFromTemplate = (name: string, sourceName: string) => {
+        if (s.configs.some((c) => c.name === name)) {
+            setTemplateError('配置名称已存在');
+            return;
+        }
+        const source = s.configs.find((c) => c.name === sourceName);
         if (!source) return;
-        const { id: _id, ...rest } = source;
-        const newCfg = createConfig(name, rest);
+        const newCfg = createConfig(name, source);
         update((d) => {
             d.configs.push(newCfg);
-            d.selectedId = newCfg.id;
-            d.templateOpen = false;
+            d.selectedName = newCfg.name;
         });
+        setTemplateOpen(false);
+        setTemplateError('');
     };
 
-    const removeConfig = (id: string) => {
+    const removeConfig = (name: string) => {
         update((d) => {
-            d.configs = d.configs.filter((c) => c.id !== id);
-            if (d.selectedId === id) d.selectedId = d.configs[0]?.id ?? '';
+            d.configs = d.configs.filter((c) => c.name !== name);
+            if (d.selectedName === name) d.selectedName = d.configs[0]?.name ?? '';
         });
     };
 
     const updateConfig = (field: keyof ModelConfig, value: string) => {
         update((d) => {
-            const c = d.configs.find((x) => x.id === d.selectedId);
+            const c = d.configs.find((x) => x.name === d.selectedName);
             if (!c) return;
             c[field] = value;
         });
@@ -154,13 +166,13 @@ export default function ModelService() {
         <div className="space-y-6 w-full">
             <div className="flex items-center gap-3">
                 {s.configs.length > 0 ? (
-                    <Select value={s.selectedId} onValueChange={(v) => update((d) => { d.selectedId = v; })}>
+                    <Select value={s.selectedName} onValueChange={(v) => update((d) => { d.selectedName = v; })}>
                         <SelectTrigger className="flex-1">
                             <SelectValue placeholder="选择配置" />
                         </SelectTrigger>
                         <SelectContent>
                             {s.configs.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -173,10 +185,8 @@ export default function ModelService() {
                     disabled={!selected}
                     onClick={() => {
                         if (!selected) return;
-                        update((d) => {
-                            d.renameValue = selected.name;
-                            d.renameOpen = true;
-                        });
+                        setRenameValue(selected.name);
+                        setRenameOpen(true);
                     }}
                 >
                     <Edit className="size-4" />
@@ -191,20 +201,18 @@ export default function ModelService() {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem onClick={() => update((d) => {
-                            d.newConfigName = `配置 ${d.configs.length + 1}`;
-                            d.newConfigOpen = true;
-                        })}>
+                        <DropdownMenuItem onClick={() => {
+                            setNewConfigName(`配置 ${s.configs.length + 1}`);
+                            setNewConfigOpen(true);
+                        }}>
                             <Plus className="size-4 mr-2" />
                             从新创建
                         </DropdownMenuItem>
                         <DropdownMenuItem disabled={!selected} onClick={() => {
                             if (!selected) return;
-                            update((d) => {
-                                d.templateName = `配置 ${d.configs.length + 1}`;
-                                d.templateSourceId = selected.id;
-                                d.templateOpen = true;
-                            });
+                            setTemplateName(`配置 ${s.configs.length + 1}`);
+                            setTemplateSourceId(selected.name);
+                            setTemplateOpen(true);
                         }}>
                             <Copy className="size-4 mr-2" />
                             从模板创建
@@ -213,30 +221,46 @@ export default function ModelService() {
                 </DropdownMenu>
 
                 {selected && (
-                    <Button variant="destructive" size="sm" className="gap-1.5" onClick={() => removeConfig(selected.id)}>
+                    <Button variant="destructive" size="sm" className="gap-1.5" onClick={() => removeConfig(selected.name)}>
                         <Trash2 />
                         删除
                     </Button>
                 )}
             </div>
 
-            <Dialog open={s.renameOpen} onOpenChange={(open) => update((d) => { d.renameOpen = open; })}>
+            <Dialog open={renameOpen} onOpenChange={(open) => {
+                setRenameOpen(open);
+                if (!open) setRenameError('');
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>重命名配置</DialogTitle>
                     </DialogHeader>
                     <Input
-                        value={s.renameValue}
-                        onChange={(e) => update((d) => { d.renameValue = e.target.value; })}
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
                         placeholder="输入新名称"
                     />
+                    {renameError && <p className="text-sm text-destructive">{renameError}</p>}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => update((d) => { d.renameOpen = false; })}>取消</Button>
+                        <Button variant="outline" onClick={() => setRenameOpen(false)}>取消</Button>
                         <Button
-                            disabled={!s.renameValue.trim()}
+                            disabled={!renameValue.trim()}
                             onClick={() => {
-                                updateConfig('name', s.renameValue.trim());
-                                update((d) => { d.renameOpen = false; });
+                                const newName = renameValue.trim();
+                                if (newName !== selected?.name && s.configs.some((c) => c.name === newName)) {
+                                    setRenameError('配置名称已存在');
+                                    return;
+                                }
+                                update((d) => {
+                                    const c = d.configs.find((x) => x.name === d.selectedName);
+                                    if (c) {
+                                        c.name = newName;
+                                    }
+                                    d.selectedName = newName;
+                                });
+                                setRenameOpen(false);
+                                setRenameError('');
                             }}
                         >
                             确认
@@ -245,21 +269,25 @@ export default function ModelService() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={s.newConfigOpen} onOpenChange={(open) => update((d) => { d.newConfigOpen = open; })}>
+            <Dialog open={newConfigOpen} onOpenChange={(open) => {
+                setNewConfigOpen(open);
+                if (!open) setNewConfigError('');
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>从新创建配置</DialogTitle>
                     </DialogHeader>
                     <Input
-                        value={s.newConfigName}
-                        onChange={(e) => update((d) => { d.newConfigName = e.target.value; })}
+                        value={newConfigName}
+                        onChange={(e) => setNewConfigName(e.target.value)}
                         placeholder="输入配置名称"
                     />
+                    {newConfigError && <p className="text-sm text-destructive">{newConfigError}</p>}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => update((d) => { d.newConfigOpen = false; })}>取消</Button>
+                        <Button variant="outline" onClick={() => setNewConfigOpen(false)}>取消</Button>
                         <Button
-                            disabled={!s.newConfigName.trim()}
-                            onClick={() => addConfig(s.newConfigName.trim())}
+                            disabled={!newConfigName.trim()}
+                            onClick={() => addConfig(newConfigName.trim())}
                         >
                             创建
                         </Button>
@@ -267,7 +295,10 @@ export default function ModelService() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={s.templateOpen} onOpenChange={(open) => update((d) => { d.templateOpen = open; })}>
+            <Dialog open={templateOpen} onOpenChange={(open) => {
+                setTemplateOpen(open);
+                if (!open) setTemplateError('');
+            }}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>从模板创建配置</DialogTitle>
@@ -276,30 +307,31 @@ export default function ModelService() {
                         <div className="space-y-1.5 flex flex-col gap-2">
                             <label className="text-sm font-medium">配置名称</label>
                             <Input
-                                value={s.templateName}
-                                onChange={(e) => update((d) => { d.templateName = e.target.value; })}
+                                value={templateName}
+                                onChange={(e) => setTemplateName(e.target.value)}
                                 placeholder="输入配置名称"
                             />
                         </div>
                         <div className="space-y-1.5 flex flex-col gap-2">
                             <label className="text-sm font-medium">模板来源</label>
-                            <Select value={s.templateSourceId} onValueChange={(v) => update((d) => { d.templateSourceId = v; })}>
+                            <Select value={templateSourceId} onValueChange={setTemplateSourceId}>
                                 <SelectTrigger className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {s.configs.map((c) => (
-                                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                                        <SelectItem key={c.name} value={c.name}>{c.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
+                        {templateError && <p className="text-sm text-destructive">{templateError}</p>}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => update((d) => { d.templateOpen = false; })}>取消</Button>
+                        <Button variant="outline" onClick={() => setTemplateOpen(false)}>取消</Button>
                         <Button
-                            disabled={!s.templateName.trim()}
-                            onClick={() => addFromTemplate(s.templateName.trim(), s.templateSourceId)}
+                            disabled={!templateName.trim()}
+                            onClick={() => addFromTemplate(templateName.trim(), templateSourceId)}
                         >
                             创建
                         </Button>
@@ -329,12 +361,17 @@ export default function ModelService() {
                         <label className="flex items-center gap-1.5 text-sm font-medium">
                             <Key className="size-3.5" /> API Key
                         </label>
-                        <Input
-                            type="password"
-                            placeholder="sk-..."
-                            value={selected.apiKey}
-                            onChange={(e) => updateConfig('apiKey', e.target.value)}
-                        />
+                        <InputGroup>
+                            <InputGroupInput
+                                type="password"
+                                placeholder="sk-..."
+                                value={selected.apiKey}
+                                onChange={(e) => updateConfig('apiKey', e.target.value)}
+                            />
+                            <InputGroupAddon align="inline-end">
+                                <EyeOffIcon />
+                            </InputGroupAddon>
+                        </InputGroup>
                     </div>
 
                     <div className="space-y-1.5">
