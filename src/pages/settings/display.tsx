@@ -2,7 +2,7 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useTheme } from '@/components/theme-provider';
-import { useSetting } from '@/stores/settings';
+import { useSetting } from '@/hooks/use-setting';
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -12,13 +12,19 @@ const THEMES = [
     { value: 'dark', label: '深色' },
 ] as const;
 
+interface Setting {
+    theme: Theme;
+}
+
 export default function DisplaySettings() {
-    const [theme, setThemeSetting] = useSetting<Theme>('theme', 'system');
+    const [setting, update] = useSetting<Setting>('display', {
+        theme: 'system'
+    });
     const { setTheme } = useTheme();
 
     const onThemeChange = (value: string) => {
         const next = value as Theme;
-        setThemeSetting(next);
+        update((d) => { d.theme = next; });
         setTheme(next);
     };
 
@@ -34,7 +40,7 @@ export default function DisplaySettings() {
                     <p className="text-sm font-medium">主题</p>
                     <p className="text-xs text-muted-foreground">选择浅色、深色或跟随系统</p>
                 </div>
-                <Select value={theme} onValueChange={onThemeChange}>
+                <Select value={setting.theme} onValueChange={onThemeChange}>
                     <SelectTrigger className="w-40">
                         <SelectValue />
                     </SelectTrigger>

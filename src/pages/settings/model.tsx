@@ -1,5 +1,4 @@
-﻿import { useEffect, useRef, useCallback, useState } from 'react';
-import { useImmer } from 'use-immer';
+﻿import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,7 +18,7 @@ import {
 import {
     Key, Globe, Bot, Plus, Trash2, RefreshCw, Copy, Edit, EyeOffIcon
 } from 'lucide-react';
-import { useSetting } from '@/stores/settings';
+import { useSetting } from '@/hooks/use-setting';
 
 const API_TYPES = [
     { id: 'openai', label: 'OpenAI 兼容' },
@@ -48,23 +47,7 @@ const DEFAULT_MODEL_SETTINGS: ModelSettings = {
 };
 
 export default function ModelService() {
-    const [settings, setSettings] = useSetting<ModelSettings>('model', DEFAULT_MODEL_SETTINGS);
-    const [s, update] = useImmer<ModelSettings>(settings);
-
-    // 同步外部设置到本地状态
-    useEffect(() => {
-        update(settings);
-    }, [settings, update]);
-
-    // 防抖保存
-    const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-    useEffect(() => {
-        if (s.configs.length === 0 && !s.selectedName) return;
-        clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => {
-            setSettings(s);
-        }, 300);
-    }, [s, setSettings]);
+    const [s, update] = useSetting<ModelSettings>('model', DEFAULT_MODEL_SETTINGS);
 
     const [renameOpen, setRenameOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');

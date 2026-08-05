@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
+import { useImmer } from 'use-immer';
 import { readTextFile, writeTextFile, exists, ensureDir, BaseDirectory } from '@/lib/fs';
 
 const SETTINGS_DIR = 'settings';
@@ -27,35 +28,35 @@ async function saveSettingFile<T>(name: string, data: T): Promise<void> {
 }
 
 /**
- * 通用设置 hook - JSON string 和对象的中间层
+ * 通用设置 hook - 直接返回 useImmer 格式
  * @param name 配置文件名（对应 settings/{name}.json）
  * @param defaultValue 默认值
- * @returns [value, setValue]
+ * @returns [value, update] - update 是 immer 的 updater 函数
  */
-export function useSetting<T>(name: string, defaultValue: T): [T, (value: T | ((prev: T) => T)) => void] {
-    const [value, setValue] = useState<T>(defaultValue);
-    const [loaded, setLoaded] = useState(false);
+export function useSetting<T>(name: string, defaultValue: T) {
+    const [value, update] = useImmer<T>(defaultValue);
+    const loadedRef = useRef(false);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     // 初始化加载
     useEffect(() => {
         loadSettingFile<T>(name).then(data => {
-            if (data !== null) {
-                setValue(data);
+            if (data !== null && typeof data === typeof defaultValue) {
+                update(data);
             }
-            setLoaded(true);
+            loadedRef.current = true;
         });
-    }, [name]);
+    }, [name, update]);
 
-    const setSetting = useCallback(async (newValue: T | ((prev: T) => T)) => {
-        if (!loaded) return;
+    // 防抖保存
+    useEffect(() => {
+        if (!loadedRef.current) return;
 
-        const resolvedValue = typeof newValue === 'function'
-            ? (newValue as (prev: T) => T)(value)
-            : newValue;
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+            saveSettingFile(name, value);
+        }, 300);
+    }, [name, value]);
 
-        setValue(resolvedValue);
-        await saveSettingFile(name, resolvedValue);
-    }, [name, value, loaded]);
-
-    return [value, setSetting];
+    return [value, update] as const;
 }

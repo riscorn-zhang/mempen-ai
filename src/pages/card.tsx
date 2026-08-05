@@ -7,6 +7,12 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import {
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "@/components/ui/resizable";
+
+import {
     ChevronRight,
     Heart,
     Clock,
@@ -30,6 +36,7 @@ import {
 import {
     CircleFill,
 } from '@gravity-ui/icons';
+import { MonacoEditor } from '@/components/editor/monaco-editor';
 
 interface CardClassification {
     name: string;
@@ -97,71 +104,73 @@ export default function CardPage() {
 
 
     return (
-        <div className="flex-1 flex min-h-0">
-            <ScrollArea className="flex h-full flex-col overflow-auto w-64 text-sm border-r p-2">
-                <div className="min-w-0 w-full">
-                    {
-                        // iterative DFS render (no recursion) - ponytail: O(n) stack, upgrade path: recursion if depth > 100
-                        (() => {
-                            const elements: React.ReactNode[] = []
-                            interface Frame {
-                                node: CardClassification
-                                key: string
-                                depth: number
-                                children: CardClassification[]
-                                childIndex: number
-                                content: React.ReactNode[]
-                            }
-                            const makeNode = (f: Frame, content: React.ReactNode[]) => {
-                                const hasChildren = f.children.length > 0
-                                const trigger = hasChildren ? (
-                                    <CollapsibleTrigger asChild>
-                                        <Button variant="ghost" size="icon-sm" className="[&[data-state=open]>svg]:rotate-90">
-                                            <ChevronRight className="transition-transform" />
-                                        </Button>
-                                    </CollapsibleTrigger>
-                                ) : <></>
-                                return (
-                                    <Collapsible key={f.key}>
-                                        <div className="flex items-center">
-                                            {trigger}
-                                            <Button variant="ghost" size="sm" className="flex-1 justify-start text-sm gap-2">
-                                                {f.node.icon}{f.node.name}
-                                            </Button>
-                                        </div>
-                                        <CollapsibleContent className="gap-0 flex flex-col pl-4">
-                                            {content}
-                                        </CollapsibleContent>
-                                    </Collapsible>
-                                )
-                            }
-                            const stack: Frame[] = []
-                            classification.forEach(node => {
-                                const content: React.ReactNode[] = []
-                                const frame: Frame = { node, key: node.name, depth: 0, children: node.children || [], childIndex: 0, content }
-                                elements.push(makeNode(frame, content))
-                                if (frame.children.length > 0) stack.push(frame)
-                            })
-                            while (stack.length > 0) {
-                                const frame = stack[stack.length - 1]
-                                if (frame.childIndex < frame.children.length) {
-                                    const child = frame.children[frame.childIndex++]
-                                    const childContent: React.ReactNode[] = []
-                                    const childKey = `${frame.key}-${child.name}`
-                                    const childFrame: Frame = { node: child, key: childKey, depth: frame.depth + 1, children: child.children || [], childIndex: 0, content: childContent }
-                                    frame.content.push(makeNode(childFrame, childContent))
-                                    if (childFrame.children.length > 0) stack.push(childFrame)
-                                } else {
-                                    stack.pop()
+        <ResizablePanelGroup>
+            <ResizablePanel className="flex" defaultSize="15">
+                <ScrollArea className="flex h-full flex-col overflow-auto text-sm p-2 w-full">
+                    <div className="min-w-0 w-full">
+                        {
+                            // iterative DFS render (no recursion) - ponytail: O(n) stack, upgrade path: recursion if depth > 100
+                            (() => {
+                                const elements: React.ReactNode[] = []
+                                interface Frame {
+                                    node: CardClassification
+                                    key: string
+                                    depth: number
+                                    children: CardClassification[]
+                                    childIndex: number
+                                    content: React.ReactNode[]
                                 }
-                            }
-                            return elements
-                        })()
-                    }
-                </div>
-            </ScrollArea>
-
-            <main className="min-w-0 flex-1">
+                                const makeNode = (f: Frame, content: React.ReactNode[]) => {
+                                    const hasChildren = f.children.length > 0
+                                    const trigger = hasChildren ? (
+                                        <CollapsibleTrigger asChild>
+                                            <Button variant="ghost" size="icon-sm" className="[&[data-state=open]>svg]:rotate-90">
+                                                <ChevronRight className="transition-transform" />
+                                            </Button>
+                                        </CollapsibleTrigger>
+                                    ) : <></>
+                                    return (
+                                        <Collapsible key={f.key}>
+                                            <div className="flex items-center">
+                                                {trigger}
+                                                <Button variant="ghost" size="sm" className="flex-1 justify-start text-sm gap-2">
+                                                    {f.node.icon}{f.node.name}
+                                                </Button>
+                                            </div>
+                                            <CollapsibleContent className="gap-0 flex flex-col pl-4">
+                                                {content}
+                                            </CollapsibleContent>
+                                        </Collapsible>
+                                    )
+                                }
+                                const stack: Frame[] = []
+                                classification.forEach(node => {
+                                    const content: React.ReactNode[] = []
+                                    const frame: Frame = { node, key: node.name, depth: 0, children: node.children || [], childIndex: 0, content }
+                                    elements.push(makeNode(frame, content))
+                                    if (frame.children.length > 0) stack.push(frame)
+                                })
+                                while (stack.length > 0) {
+                                    const frame = stack[stack.length - 1]
+                                    if (frame.childIndex < frame.children.length) {
+                                        const child = frame.children[frame.childIndex++]
+                                        const childContent: React.ReactNode[] = []
+                                        const childKey = `${frame.key}-${child.name}`
+                                        const childFrame: Frame = { node: child, key: childKey, depth: frame.depth + 1, children: child.children || [], childIndex: 0, content: childContent }
+                                        frame.content.push(makeNode(childFrame, childContent))
+                                        if (childFrame.children.length > 0) stack.push(childFrame)
+                                    } else {
+                                        stack.pop()
+                                    }
+                                }
+                                return elements
+                            })()
+                        }
+                    </div>
+                </ScrollArea>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel className="flex flex-col" defaultSize="35">
                 <header className="flex items-center gap-2 px-4 h-12">
                     <InputGroup className="flex-1">
                         <InputGroupInput placeholder="Search..." />
@@ -171,9 +180,15 @@ export default function CardPage() {
                     </InputGroup>
                 </header>
 
-                <section className="p-6">
+                <section className="flex-1">
+                    <MonacoEditor />
                 </section>
-            </main>
-        </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize="50">
+
+            </ResizablePanel>
+        </ResizablePanelGroup>
+
     )
 }

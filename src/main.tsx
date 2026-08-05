@@ -5,7 +5,8 @@ import { RouterProvider } from "react-router-dom"
 import "./index.css"
 import { router } from "@/routes"
 import { ThemeProvider, useTheme } from "@/components/theme-provider.tsx"
-import { useSetting } from "@/stores/settings"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { useSetting } from "@/hooks/use-setting"
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -23,9 +24,11 @@ function SettingsBootstrap({ children }: { children: React.ReactNode }) {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <SettingsBootstrap>
-        <RouterProvider router={router} />
-      </SettingsBootstrap>
+      <TooltipProvider>
+        <SettingsBootstrap>
+          <RouterProvider router={router} />
+        </SettingsBootstrap>
+      </TooltipProvider>
     </ThemeProvider>
   </StrictMode>
 )

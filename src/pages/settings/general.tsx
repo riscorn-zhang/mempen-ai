@@ -2,16 +2,24 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useSetting } from '@/stores/settings';
+import { useSetting } from '@/hooks/use-setting';
 
 const LANGUAGES = [
     { value: 'zh-CN', label: '简体中文' },
     { value: 'en-US', label: 'English' },
 ] as const;
 
+interface GeneralSetting {
+    language: string;
+    autoSave: boolean;
+}
+
 export default function GeneralSettings() {
-    const [language, setLanguage] = useSetting<string>('language', 'zh-CN');
-    const [autoSave, setAutoSave] = useSetting<boolean>('autoSave', true);
+
+    const [setting, update] = useSetting<GeneralSetting>('general', {
+        language: 'zh-CN',
+        autoSave: true,
+    });
 
     return (
         <div className="max-w-2xl space-y-6">
@@ -26,7 +34,7 @@ export default function GeneralSettings() {
                         <p className="text-sm font-medium">语言</p>
                         <p className="text-xs text-muted-foreground">界面显示语言</p>
                     </div>
-                    <Select value={language} onValueChange={setLanguage}>
+                    <Select value={setting.language} onValueChange={(v) => update(s => { s.language = v; })}>
                         <SelectTrigger className="w-40">
                             <SelectValue />
                         </SelectTrigger>
@@ -45,7 +53,7 @@ export default function GeneralSettings() {
                         <p className="text-sm font-medium">自动保存</p>
                         <p className="text-xs text-muted-foreground">编辑内容时自动写入本地</p>
                     </div>
-                    <Switch checked={autoSave} onCheckedChange={setAutoSave} />
+                    <Switch checked={setting.autoSave} onCheckedChange={(v) => update(s => { s.autoSave = v; })} />
                 </div>
             </div>
         </div>
