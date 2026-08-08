@@ -1,52 +1,60 @@
 ﻿import { Suspense, useEffect } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Outlet, useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Ellipsis, EllipsisVertical, Settings } from "lucide-react";
 
 import useNavStore from "@/stores/nav";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function MainLayout() {
     const navigate = useNavigate();
-    const { canGoBack, back, setNavigate } = useNavStore();
+    const nav = useNavStore();
 
     useEffect(() => {
-        setNavigate(navigate);
-    }, [navigate, setNavigate]);
+        nav.setNavigate(navigate);
+    }, [navigate, nav.setNavigate]);
 
     return (
-        <SidebarProvider className="h-svh transition-all">
-            <AppSidebar data-tauri-drag-region />
+        <div className="h-full">
+            {/* 顶部 Header */}
+            <header data-tauri-drag-region className="flex h-12 items-center border-b bg-background px-4 sticky top-0 z-50">
 
-            <SidebarInset className="bg-background">
-                {/* 顶部 Header */}
-                <header data-tauri-drag-region className="flex h-12 items-center border-b bg-background px-4 sticky top-0 z-50">
-                    <div className="flex items-center gap-3">
-                        {canGoBack && <div className="h-5 w-px bg-border" />}
-                        {canGoBack && (
-                            <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                onClick={() => {
-                                    back();
-                                }}
-                            >
-                                <ChevronLeft className="size-4" />
-                            </Button>
-                        )}
+                {nav.canGoBack && (
+                    <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => {
+                            nav.back();
+                        }}
+                    >
+                        <ChevronLeft className="size-4" />
+                    </Button>
+                )}
 
-                        <div className="min-h-6" />
-                    </div>
-                </header>
+                <div className="flex-1" />
 
-                {/* 主内容区域 */}
-                <main className="flex flex-1 flex-col overflow-auto">
-                    <Suspense fallback={null}>
-                        <Outlet />
-                    </Suspense>
-                </main>
-            </SidebarInset>
-        </SidebarProvider>
+                <DropdownMenu>
+                    <DropdownMenuTrigger>
+                        <Button size={"icon"} variant={"ghost"}>
+                            <EllipsisVertical />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => nav.forward("/settings")}>
+                            <Settings />
+                            Setting...
+
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </header>
+
+            {/* 主内容区域 */}
+            <main className="flex flex-1 flex-col overflow-auto h-full">
+                <Suspense fallback={null}>
+                    <Outlet />
+                </Suspense>
+            </main>
+        </div>
     );
 }
