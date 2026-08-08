@@ -11,7 +11,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import FileExplorer, { type FSNode } from "@/components/common/FileExplorer";
+import FileExplorer, { type FSNode } from "@/components/common/file-explorer";
 
 // ==================== Mock Data ====================
 

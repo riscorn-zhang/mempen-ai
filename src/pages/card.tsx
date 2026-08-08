@@ -19,14 +19,24 @@ import {
     Flag,
     Circle,
     FileText,
-    Tag,
+    Tag as TagIcon,
     Layers,
     Image,
     Edit3,
     HelpCircle,
+    Plus,
+    X,
+    Moon,
+    JapaneseYen,
+    Check,
+    TableProperties,
+    Code,
+    View,
+    Library,
 } from 'lucide-react'
 
 import { Search } from "lucide-react"
+import React, { useState } from 'react'
 import {
     InputGroup,
     InputGroupAddon,
@@ -36,16 +46,23 @@ import {
 import {
     CircleFill,
 } from '@gravity-ui/icons';
-import { MonacoEditor } from '@/components/editor/monaco-editor';
+
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+
+
+import { CardEditor } from "@/components/common/card-editor";
+
 
 interface CardClassification {
     name: string;
     icon?: React.ReactNode;
     children?: CardClassification[];
+    filter?: string;
 }
 export default function CardPage() {
 
     const classification: CardClassification[] = [
+        { name: '库', icon: <Library className="size-4 text-primary" />, filter: "" },
         { name: '收藏夹', icon: <Heart className="size-4 text-red-500" /> },
         {
             name: '今天', icon: <Clock className="size-4" />, children: [
@@ -99,13 +116,15 @@ export default function CardPage() {
                 },
             ]
         },
-        { name: '标签', icon: <Tag className="size-4 text-slate-500" />, children: [{ name: '无标签', icon: <Circle className="size-4 text-slate-500" /> }] },
+        { name: '标签', icon: <TagIcon className="size-4 text-slate-500" />, children: [{ name: '无标签', icon: <Circle className="size-4 text-slate-500" /> }] },
     ]
+
+    const [openCard, setOpenCard] = useState(false);
 
 
     return (
-        <ResizablePanelGroup>
-            <ResizablePanel className="flex" defaultSize="15">
+        <div className="flex flex-1">
+            <div className="flex w-64 border-r">
                 <ScrollArea className="flex h-full flex-col overflow-auto text-sm p-2 w-full">
                     <div className="min-w-0 w-full">
                         {
@@ -168,9 +187,8 @@ export default function CardPage() {
                         }
                     </div>
                 </ScrollArea>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel className="flex flex-col" defaultSize="35">
+            </div>
+            <div className="flex flex-col flex-1 overflow-clip relative">
                 <header className="flex items-center gap-2 px-4 h-12">
                     <InputGroup className="flex-1">
                         <InputGroupInput placeholder="Search..." />
@@ -181,14 +199,27 @@ export default function CardPage() {
                 </header>
 
                 <section className="flex-1">
-                    <MonacoEditor />
+                    {/* <div className="inline-flex items-center border pl-2 rounded-2xl">
+                        <small className="">Tag</small>
+                        <Button size='icon-xs' variant="ghost">
+                            <X />
+                        </Button>
+                    </div> */}
                 </section>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize="50">
-
-            </ResizablePanel>
-        </ResizablePanelGroup>
+                <Button size="icon-lg" className="absolute bottom-12 right-12 h-18 w-18 active:scale-90" onClick={() => setOpenCard(true)}>
+                    <Plus className="size-8" />
+                </Button>
+            </div>
+            <Dialog open={openCard}>
+                <DialogContent className="h-[90%] w-[90%] sm:max-w-full flex" showCloseButton={false}>
+                    <CardEditor
+                        className="flex-1 min-w-0"
+                        onDiscard={() => setOpenCard(false)}
+                        onSubmit={(text: string) => { setOpenCard(false); console.log(text); }}
+                    />
+                </DialogContent>
+            </Dialog>
+        </div>
 
     )
 }

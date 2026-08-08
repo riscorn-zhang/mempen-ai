@@ -1,8 +1,17 @@
-import { useEffect, useRef } from 'react';
-import { useImmer } from 'use-immer';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { produce } from 'immer';
 import { readTextFile, writeTextFile, exists, ensureDir, BaseDirectory } from '@/lib/fs';
 
 const SETTINGS_DIR = 'settings';
+
+type Entry<T> = {
+    value: T
+    loaded: boolean
+    listeners: Set<(v: T) => void>
+    saveTimer?: ReturnType<typeof setTimeout>
+}
+
+const SETTINGS_CACHE = new Map<string, Entry<any>>()
 
 /** 读取单个设置文件 */
 async function loadSettingFile<T>(name: string): Promise<T | null> {
@@ -34,29 +43,69 @@ async function saveSettingFile<T>(name: string, data: T): Promise<void> {
  * @returns [value, update] - update 是 immer 的 updater 函数
  */
 export function useSetting<T>(name: string, defaultValue: T) {
-    const [value, update] = useImmer<T>(defaultValue);
-    const loadedRef = useRef(false);
-    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const [, forceState] = useState(0)
+    const mountedRef = useRef(false)
 
-    // 初始化加载
+    // ensure cache entry
+    if (!SETTINGS_CACHE.has(name)) {
+        SETTINGS_CACHE.set(name, {
+            value: defaultValue,
+            loaded: false,
+            listeners: new Set(),
+            saveTimer: undefined
+        })
+    }
+
+    const entry = SETTINGS_CACHE.get(name) as Entry<T>
+
+    // local getter
+    const getValue = useCallback(() => entry.value as T, [entry])
+
+    // subscribe on mount
     useEffect(() => {
-        loadSettingFile<T>(name).then(data => {
-            if (data !== null && typeof data === typeof defaultValue) {
-                update(data);
-            }
-            loadedRef.current = true;
-        });
-    }, [name, update]);
+        mountedRef.current = true
 
-    // 防抖保存
-    useEffect(() => {
-        if (!loadedRef.current) return;
+        const listener = () => {
+            // trigger re-render
+            if (mountedRef.current) forceState((s) => s + 1)
+        }
 
-        clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(() => {
-            saveSettingFile(name, value);
-        }, 300);
-    }, [name, value]);
+        entry.listeners.add(listener)
 
-    return [value, update] as const;
+        // load from file once
+        if (!entry.loaded) {
+            loadSettingFile<T>(name).then((data) => {
+                if (data !== null && typeof data === typeof defaultValue) {
+                    entry.value = data
+                }
+                entry.loaded = true
+                // notify subscribers
+                entry.listeners.forEach((l) => l(entry.value))
+                // no immediate save here
+            })
+        }
+
+        return () => {
+            mountedRef.current = false
+            entry.listeners.delete(listener)
+        }
+    }, [name])
+
+    const update = useCallback((updater: ((draft: T) => void) | T) => {
+        const next = typeof updater === 'function' ? produce(entry.value as T, updater as (d: T) => void) : updater
+
+        entry.value = next
+
+        // notify listeners (including this hook)
+        entry.listeners.forEach((l) => l(entry.value))
+
+        // debounce save per key
+        if (entry.saveTimer) clearTimeout(entry.saveTimer)
+        entry.saveTimer = setTimeout(() => {
+            saveSettingFile(name, entry.value)
+        }, 300)
+    }, [name, entry])
+
+    // return current value and updater
+    return [getValue(), update] as const
 }
