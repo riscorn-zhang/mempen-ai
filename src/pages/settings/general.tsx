@@ -2,24 +2,18 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useSetting } from '@/hooks/use-setting';
+import { useSetting } from '@/lib/settings';
 
 const LANGUAGES = [
     { value: 'zh-CN', label: '简体中文' },
     { value: 'en-US', label: 'English' },
 ] as const;
 
-interface GeneralSetting {
-    language: string;
-    autoSave: boolean;
-}
+
 
 export default function GeneralSettings() {
 
-    const [setting, update] = useSetting<GeneralSetting>('general', {
-        language: 'zh-CN',
-        autoSave: true,
-    });
+    const [setting, update] = useSetting('general');
 
     return (
         <div className="max-w-2xl space-y-6">

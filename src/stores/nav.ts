@@ -10,8 +10,8 @@ interface NavStore {
     setNavigate: (nav: NavigateFunction) => void;
     forward: (url: string) => void;
     back: () => void;
-    goto: (url: string) => void;
-    replace: (url: string) => void;
+    home: (url: string) => void;
+    move: (url: string) => void;
 }
 
 const useNavStore = create<NavStore>((set, get) => ({
@@ -46,7 +46,7 @@ const useNavStore = create<NavStore>((set, get) => ({
         nav(-1);
     },
 
-    goto: (url) => {
+    home: (url) => {
         const nav = get().navigate;
         if (!nav) return;
 
@@ -54,7 +54,7 @@ const useNavStore = create<NavStore>((set, get) => ({
         nav(url);
     },
 
-    replace: (url) => {
+    move: (url) => {
         const nav = get().navigate;
         if (!nav) return;
 

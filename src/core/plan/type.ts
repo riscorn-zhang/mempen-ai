@@ -1,7 +1,4 @@
 interface Plan {
-    name: string;
-    id: string;
-    description: string;
 
     properties: PlanProperties;
     records: PlanRecords;
@@ -9,7 +6,9 @@ interface Plan {
 }
 
 interface PlanProperties {
-
+    name: string;
+    id: string;
+    description: string;
     startTime: Date;
     endTime: Date | 'forever';
     weight: number;

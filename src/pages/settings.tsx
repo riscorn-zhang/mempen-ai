@@ -16,7 +16,7 @@ const sections: { id: string; label: string; icon: LucideIcon; path: string }[] 
 
 export default function SettingsPage() {
     const location = useLocation();
-    const { replace } = useNavStore();
+    const nav = useNavStore();
 
     return (
         <div className="flex h-full gap-2">
@@ -27,9 +27,9 @@ export default function SettingsPage() {
                     return (
                         <Button
                             key={id}
-                            variant={isActive ? 'secondary' : 'ghost'}
+                            variant={isActive ? 'primary' : 'ghost'}
                             className="w-full justify-start gap-2.5 h-9 text-sm"
-                            onClick={() => replace(`/settings/${path}`)}
+                            onClick={() => nav.move(`/settings/${path}`)}
                         >
                             <Icon className="size-4" />
                             {label}

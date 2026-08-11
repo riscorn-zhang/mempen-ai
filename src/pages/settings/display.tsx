@@ -2,7 +2,7 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useTheme } from '@/components/theme-provider';
-import { useSetting } from '@/hooks/use-setting';
+import { useSetting } from '@/lib/settings';
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -12,20 +12,13 @@ const THEMES = [
     { value: 'dark', label: '深色' },
 ] as const;
 
-interface Setting {
-    theme: Theme;
-}
 
 export default function DisplaySettings() {
-    const [setting, update] = useSetting<Setting>('display', {
-        theme: 'system'
-    });
-    const { setTheme } = useTheme();
+    const [setting, update] = useSetting<'display'>('display');
 
     const onThemeChange = (value: string) => {
         const next = value as Theme;
         update((d) => { d.theme = next; });
-        setTheme(next);
     };
 
     return (
