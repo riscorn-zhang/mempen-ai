@@ -1,8 +1,7 @@
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { useTheme } from '@/components/theme-provider';
-import { useSetting } from '@/lib/settings';
+import { useConfig } from '@/lib/config';
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -14,7 +13,7 @@ const THEMES = [
 
 
 export default function DisplaySettings() {
-    const [setting, update] = useSetting<'display'>('display');
+    const [setting, update] = useConfig(["settings", 'display']);
 
     const onThemeChange = (value: string) => {
         const next = value as Theme;

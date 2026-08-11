@@ -18,9 +18,9 @@ import {
 import {
     Key, Globe, Bot, Plus, Trash2, RefreshCw, Copy, Edit, EyeOffIcon
 } from 'lucide-react';
-import { useSetting } from '@/lib/settings';
+import { useConfig } from '@/lib/config';
 
-import type { ModelConfig } from '@/lib/settings/types/model';
+import type { ModelConfig } from '@/lib/config/types/settings/model';
 
 const API_TYPES = [
     { id: 'openai', label: 'OpenAI 兼容' },
@@ -32,7 +32,7 @@ const API_TYPES = [
 
 
 export default function ModelService() {
-    const [s, update] = useSetting('model');
+    const [s, update] = useConfig(['settings', 'model']);
 
     const [renameOpen, setRenameOpen] = useState(false);
     const [renameValue, setRenameValue] = useState('');

@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import * as React from "react"
-import { useSetting } from "@/lib/settings"
+import { useConfig } from "@/lib/config"
 
 type Theme = "dark" | "light" | "system"
 type ResolvedTheme = "dark" | "light"
@@ -57,8 +57,8 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
 
-  const [display, updateDisplay] = useSetting(
-    "display",
+  const [display, updateDisplay] = useConfig(
+    ["settings", "display"]
   )
 
   const theme = display.theme

@@ -1,11 +1,12 @@
 import { create } from "zustand";
+import { documentDir } from '@tauri-apps/api/path';
 
 interface WorkspaceStore {
     workspace: string;
     setWorkspace: (arg0: string) => void;
 }
 
-export default create<WorkspaceStore>((set, get) => ({
+const useWorkspace = create<WorkspaceStore>((set) => ({
     workspace: "",
     setWorkspace: (workspace: string) => {
 
@@ -13,3 +14,5 @@ export default create<WorkspaceStore>((set, get) => ({
 
     }
 }))
+
+export default useWorkspace;

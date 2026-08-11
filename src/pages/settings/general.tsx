@@ -2,7 +2,7 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useSetting } from '@/lib/settings';
+import { useConfig } from '@/lib/config';
 
 const LANGUAGES = [
     { value: 'zh-CN', label: '简体中文' },
@@ -13,7 +13,7 @@ const LANGUAGES = [
 
 export default function GeneralSettings() {
 
-    const [setting, update] = useSetting('general');
+    const [setting, update] = useConfig(['settings', 'general']);
 
     return (
         <div className="max-w-2xl space-y-6">

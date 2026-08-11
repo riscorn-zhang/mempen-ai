@@ -41,7 +41,7 @@ export {
     exists,
     mkdir,
     ensureDir,
-    watch
+    watch,
     // loadData,
     // saveData,
 

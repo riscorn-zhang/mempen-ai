@@ -1,4 +1,4 @@
-import type Settings from "../types";
+import type Settings from "../../types/settings";
 import display from "./display";
 import model from "./model";
 import general from "./general";

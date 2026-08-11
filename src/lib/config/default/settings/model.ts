@@ -1,4 +1,4 @@
-import type ModelSettings from "../types/model";
+import type ModelSettings from "../../types/settings/model";
 
 export default {
     configs: [],

@@ -1,11 +1,14 @@
 ﻿import { Suspense, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Outlet, useNavigate } from "react-router-dom";
-import { ChevronLeft, Ellipsis, EllipsisVertical, Home, Settings } from "lucide-react";
+import { ChevronLeft, EllipsisVertical, Home, Settings } from "lucide-react";
 
 import useNavStore from "@/stores/nav";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import WorkspaceIndicator from "@/components/common/workspace-indicator";
+
+import AppInit from "@/app/init"
+
 
 export default function MainLayout() {
     const navigate = useNavigate();
@@ -15,8 +18,10 @@ export default function MainLayout() {
         nav.setNavigate(navigate);
     }, [navigate, nav.setNavigate]);
 
+
     return (
         <div className="h-full">
+            <AppInit />
             {/* 顶部 Header */}
             <header data-tauri-drag-region className="flex h-12 items-center border-b bg-background px-4 sticky top-0 z-50 gap-4">
 
