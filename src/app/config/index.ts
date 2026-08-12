@@ -1,9 +1,11 @@
 import { useJSON } from "@/app/json";
-import { ZodObject, type ZodType, type ZodTypeAny } from "zod";
+import type { ZodType, ZodObject } from "zod";
+import { z } from "zod";
 
-import type { ConfigTypes } from "./types";
 import { configSchema } from "./types";
 import defaults from "./default";
+
+type ConfigTypes = z.infer<typeof configSchema>;
 
 type ConfigPath<T> =
     T extends object
@@ -41,6 +43,18 @@ function getDefault<
     return value as ConfigValue<ConfigTypes, P>;
 }
 
+function getSchema<
+    P extends ConfigPath<ConfigTypes>
+>(path: P): ZodType<ConfigValue<ConfigTypes, P>> {
+    let schema: ZodObject<any> = configSchema as unknown as ZodObject<any>;
+
+    for (const key of path) {
+        schema = (schema as ZodObject<any>).shape[key] as ZodObject<any>;
+    }
+
+    return schema as unknown as ZodType<ConfigValue<ConfigTypes, P>>;
+}
+
 export function useConfig<
     P extends ConfigPath<ConfigTypes>
 >(path: P) {
@@ -48,6 +62,7 @@ export function useConfig<
 
     return useJSON<Value>(
         path.join("/"),
-        getDefault(path)
+        getDefault(path),
+        getSchema(path)
     );
 }

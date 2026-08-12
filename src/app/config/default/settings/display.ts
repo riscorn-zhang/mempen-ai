@@ -1,5 +1,6 @@
-import type DisplaySetting from "@/app/config/types/settings/display"
+import { z } from "zod";
+import { displaySettingSchema } from "@/app/config/types/settings/display"
 
 export default {
     theme: "system"
-} as DisplaySetting
+} satisfies z.infer<typeof displaySettingSchema>;

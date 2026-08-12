@@ -1,4 +1,5 @@
+import { z } from "zod";
 
-export default interface DisplaySetting {
-    theme: 'light' | 'dark' | 'system';
-}
+export const displaySettingSchema = z.object({
+    theme: z.enum(["light", "dark", "system"]),
+});

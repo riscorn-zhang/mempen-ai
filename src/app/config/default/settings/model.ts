@@ -1,6 +1,7 @@
-import type ModelSettings from "../../types/settings/model";
+import { z } from "zod";
+import { modelSettingsSchema } from "../../types/settings/model";
 
 export default {
     configs: [],
     selectedName: '',
-} as ModelSettings;
+} satisfies z.infer<typeof modelSettingsSchema>;

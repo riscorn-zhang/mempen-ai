@@ -25,10 +25,7 @@
       "identifier": "fs:allow-write-text-file",
       "allow": [
         {
-          "path": "$APPDATA/**"
-        },
-        {
-          "path": "$APPLOCALDATA/**"
+          "path": "$HOME/**"
         }
       ]
     },
@@ -36,10 +33,7 @@
       "identifier": "fs:allow-read-text-file",
       "allow": [
         {
-          "path": "$APPDATA/**"
-        },
-        {
-          "path": "$APPLOCALDATA/**"
+          "path": "$HOME/**"
         }
       ]
     },
@@ -47,10 +41,7 @@
       "identifier": "fs:allow-exists",
       "allow": [
         {
-          "path": "$APPDATA/**"
-        },
-        {
-          "path": "$APPLOCALDATA/**"
+          "path": "$HOME/**"
         }
       ]
     },
@@ -58,10 +49,31 @@
       "identifier": "fs:allow-mkdir",
       "allow": [
         {
-          "path": "$APPDATA/**"
-        },
+          "path": "$HOME/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-remove",
+      "allow": [
         {
-          "path": "$APPLOCALDATA/**"
+          "path": "$HOME/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-rename",
+      "allow": [
+        {
+          "path": "$HOME/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [
+        {
+          "path": "$HOME/**"
         }
       ]
     }

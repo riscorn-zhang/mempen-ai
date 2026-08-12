@@ -1,5 +1,5 @@
 interface Plan {
-
+    id: string;
     properties: PlanProperties;
     records: PlanRecords;
 
@@ -7,12 +7,10 @@ interface Plan {
 
 interface PlanProperties {
     name: string;
-    id: string;
     description: string;
     startTime: Date;
     endTime: Date | 'forever';
     weight: number;
-
 
 }
 
@@ -21,8 +19,14 @@ interface PlanRecords {
 
 }
 
+interface PlanContent {
+    properties: PlanProperties;
+    records: PlanRecords;
+}
+
 export type {
     Plan,
     PlanProperties,
-    PlanRecords
+    PlanRecords,
+    PlanContent,
 }

@@ -1,4 +1,5 @@
-import type Settings from "../../types/settings";
+import { z } from "zod";
+import { settingsSchema } from "../../types/settings";
 import display from "./display";
 import model from "./model";
 import general from "./general";
@@ -8,4 +9,4 @@ export default {
     display,
     model,
     general,
-} as Settings
+} satisfies z.infer<typeof settingsSchema>;

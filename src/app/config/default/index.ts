@@ -1,7 +1,10 @@
-import type ConfigTypes from "../types"
+import { z } from "zod";
+import { configSchema } from "../types"
 import settings from "./settings"
+import runtime from "./runtime";
 
 
 export default {
-    settings
-} as ConfigTypes;
+    settings,
+    runtime
+} satisfies z.infer<typeof configSchema>;

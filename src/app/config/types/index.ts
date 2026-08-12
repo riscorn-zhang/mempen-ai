@@ -1,6 +1,8 @@
-import type Settings from "./settings";
+import { z } from "zod";
+import { settingsSchema } from "./settings";
+import { runtimeSchema } from "./runtime";
 
-
-export default interface ConfigTypes {
-    settings: Settings
-}
+export const configSchema = z.object({
+    settings: settingsSchema,
+    runtime: runtimeSchema,
+});

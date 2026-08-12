@@ -1,9 +1,10 @@
-import type DisplaySetting from "./display";
-import type GeneralSetting from "./general";
-import type ModelSettings from "./model";
+import { z } from "zod";
+import { displaySettingSchema } from "./display";
+import { generalSettingSchema } from "./general";
+import { modelSettingsSchema } from "./model";
 
-export default interface Settings {
-    display: DisplaySetting;
-    model: ModelSettings;
-    general: GeneralSetting;
-}
+export const settingsSchema = z.object({
+    display: displaySettingSchema,
+    general: generalSettingSchema,
+    model: modelSettingsSchema,
+});

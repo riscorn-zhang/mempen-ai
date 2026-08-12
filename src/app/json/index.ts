@@ -39,7 +39,12 @@ async function loadJSON<T>(path: string, schema?: ZodType<T>): Promise<T | null>
 
         if (schema) {
             const result = schema.safeParse(parsed);
-            return result.success ? result.data : null;
+            if (result.success) return result.data;
+            console.warn(
+                `[json] schema validation failed for "${filePath}", falling back to default.`,
+                result.error.issues
+            );
+            return null;
         }
 
         return parsed as T;
@@ -84,7 +89,7 @@ export function useJSON<T>(
 
     useEffect(() => {
         const listener = () => {
-            refresh(v => v + 1);
+            refresh(v => 1 - v);
         };
 
         entry.listeners.add(listener);
